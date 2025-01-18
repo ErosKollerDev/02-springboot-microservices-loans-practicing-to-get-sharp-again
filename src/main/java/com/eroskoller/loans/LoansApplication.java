@@ -2,12 +2,16 @@ package com.eroskoller.loans;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication
-public class Application {
+@EnableJpaAuditing(
+		auditorAwareRef = "auditorAwareImpl"
+)
+public class LoansApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
+		SpringApplication.run(LoansApplication.class, args);
 	}
 
 }
