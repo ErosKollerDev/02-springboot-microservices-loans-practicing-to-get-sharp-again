@@ -1,4 +1,4 @@
-package com.eroskoller.loans;
+package com.eroskoller.loans.mapper;
 
 import com.eroskoller.loans.dto.LoanDto;
 import com.eroskoller.loans.entity.LoanEntity;
@@ -12,19 +12,20 @@ public class LoanMapper {
         loan.setLoanType(loanDto.getLoanType());
         loan.setTotalLoan(loanDto.getTotalLoan());
         loan.setAmountPaid(loanDto.getAmountPaid());
-        loan.setOutStandingAmount(loanDto.getOutStandingAmount());
+        loan.setOutStandingAmount(loanDto.getOutstandingAmount());
         return loan;
     }
 
     public static LoanDto mapToLoanDto(LoanEntity loan) {
-        LoanDto loanDto = new LoanDto();
-        loanDto.setMobileNumber(loan.getMobileNumber());
-        loanDto.setLoanNumber(loan.getLoanNumber());
-        loanDto.setLoanType(loan.getLoanType());
-        loanDto.setTotalLoan(loan.getTotalLoan());
-        loanDto.setAmountPaid(loan.getAmountPaid());
-        loanDto.setOutStandingAmount(loan.getOutStandingAmount());
-        return loanDto;
+
+        return LoanDto.builder()
+                .mobileNumber(loan.getMobileNumber())
+                .loanNumber(loan.getLoanNumber())
+                .loanType(loan.getLoanType())
+                .totalLoan(loan.getTotalLoan())
+                .amountPaid(loan.getAmountPaid())
+                .outstandingAmount(loan.getOutStandingAmount())
+                .build();
     }
 
 }

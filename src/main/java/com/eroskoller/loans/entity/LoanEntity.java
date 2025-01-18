@@ -16,7 +16,7 @@ public class LoanEntity extends BaseEntity {
     private Long loanId;
 
 
-    @Column(name = "mobile_number")
+    @Column(name = "mobile_number", unique = true)
     private String mobileNumber;
 
     @Column(name = "loan_number", unique = true)

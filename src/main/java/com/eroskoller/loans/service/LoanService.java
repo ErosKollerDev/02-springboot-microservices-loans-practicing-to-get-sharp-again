@@ -1,7 +1,9 @@
 package com.eroskoller.loans.service;
 
 
-import com.eroskoller.loans.LoanMapper;
+import com.eroskoller.loans.constants.LoansConstants;
+import com.eroskoller.loans.dto.ResponseDto;
+import com.eroskoller.loans.mapper.LoanMapper;
 import com.eroskoller.loans.dto.LoanDto;
 import com.eroskoller.loans.entity.LoanEntity;
 import com.eroskoller.loans.exception.LoanAlreadyExistsException;
@@ -23,8 +25,8 @@ public class LoanService {
     private final LoanRepository loanRepository;
 
 
-    public LoanDto getLoan(String loanNumber) {
-        Optional<LoanEntity> loanRepositoryByLoanNumber = this.loanRepository.findByLoanNumber(loanNumber);
+    public LoanDto getLoan(String mobileNumber) {
+        Optional<LoanEntity> loanRepositoryByLoanNumber = this.loanRepository.findByMobileNumber(mobileNumber);
         if (loanRepositoryByLoanNumber.isPresent()) {
             return LoanMapper.mapToLoanDto(loanRepositoryByLoanNumber.get());
         } else {
@@ -35,57 +37,65 @@ public class LoanService {
 
     public List<LoanDto> getAllLoans() {
         List<LoanEntity> allEntities = loanRepository.findAll();
-        ArrayList<LoanDto> loanDtos = new ArrayList<>();
-
-        for (LoanEntity entity : allEntities) {
-            LoanDto loanDto = new LoanDto();
-            loanDto.setMobileNumber(entity.getMobileNumber());
-            loanDto.setLoanNumber(entity.getLoanNumber());
-            loanDto.setLoanType(entity.getLoanType());
-            loanDto.setTotalLoan(entity.getTotalLoan());
-            loanDto.setAmountPaid(entity.getAmountPaid());
-            loanDto.setOutStandingAmount(entity.getOutStandingAmount());
-            loanDtos.add(loanDto);
-        }
-        return loanDtos;
+//        ArrayList<LoanDto> loanDtos = new ArrayList<>();
+//
+//        for (LoanEntity entity : allEntities) {
+//
+//
+//        }
+//        return loanDtos;
+        return allEntities.stream()
+                .map(LoanMapper::mapToLoanDto)
+                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
     }
 
-    public LoanDto createLoan(@Valid LoanDto loanDto) {
-        Optional<LoanEntity> loanRepositoryByLoanNumber = this.loanRepository.findByLoanNumber(loanDto.getLoanNumber());
+    public ResponseDto createLoan(String mobileNumber) {
+        Optional<LoanEntity> loanRepositoryByLoanNumber = this.loanRepository.findByMobileNumber(mobileNumber);
 
 
         if (loanRepositoryByLoanNumber.isPresent()) {
             throw new LoanAlreadyExistsException("Loan already exists");
         }
+
+        LoanDto loanDto = LoanDto.builder()
+                .loanType(LoansConstants.HOME_LOAN)
+                .totalLoan(LoansConstants.NEW_LOAN_LIMIT)
+                .amountPaid(0)
+                .outstandingAmount(LoansConstants.NEW_LOAN_LIMIT)
+                .mobileNumber(mobileNumber)
+                .loanNumber(Math.round(Math.random() * 999999999999L) + "")
+                .build();
+
         LoanEntity loanEntity = LoanMapper.mapToLoanEntity(loanDto, new LoanEntity());
+//        loanEntity.setLoanNumber(Math.round(Math.random()*999999999999L)+"");
         this.loanRepository.save(loanEntity);
-        return LoanMapper.mapToLoanDto(loanEntity);
+        return new ResponseDto(LoansConstants.STATUS_201, LoansConstants.MESSAGE_201);
 
     }
 
 
-    public LoanDto updateLoan(@Valid LoanDto loanDto) {
+    public ResponseDto updateLoan(LoanDto loanDto) {
         Optional<LoanEntity> loanRepositoryByLoanNumber = this.loanRepository.findByLoanNumber(loanDto.getLoanNumber());
 
         if (loanRepositoryByLoanNumber.isPresent()) {
             LoanEntity loanEntity = LoanMapper.mapToLoanEntity(loanDto, loanRepositoryByLoanNumber.get());
-            LoanEntity updated = this.loanRepository.save(loanEntity);
-            return LoanMapper.mapToLoanDto(updated);
+            this.loanRepository.save(loanEntity);
+            return new ResponseDto("200", "Loan updated successfully");
         } else {
-            throw new LoanAlreadyExistsException("Loan doesnt exists");
+            throw new LoanDoesntExistsException("Loan doesnt exists");
 
         }
 
     }
 
-    public boolean deleteLoan(String loanNumber) {
+    public boolean deleteLoan(String mobileNumber) {
 
-        Optional<LoanEntity> loanRepositoryByLoanNumber = this.loanRepository.findByLoanNumber(loanNumber);
+        Optional<LoanEntity> loanRepositoryByLoanNumber = this.loanRepository.findByMobileNumber(mobileNumber);
         if (loanRepositoryByLoanNumber.isPresent()) {
             this.loanRepository.delete(loanRepositoryByLoanNumber.get());
             return true;
         } else {
-            return false;
+            throw new LoanDoesntExistsException("Loan doesnt exists");
         }
 
     }
