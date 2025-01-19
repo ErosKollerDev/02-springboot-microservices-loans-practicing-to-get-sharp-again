@@ -59,7 +59,7 @@ public class LoanController {
 //                                                  @Pattern(regexp="(^$|[0-9]{12})",message = "Mobile number must be 10 digits")
 //            @Min(value = 10, message = "Mobile number must be 10 digits")
 //            @Max(value = 12, message = "Mobile number must be 12 digits")
-                                                      String mobileNumber) {
+                                                  String mobileNumber) {
         return ResponseEntity.status(HttpStatus.CREATED).body(loanService.createLoan(mobileNumber));
     }
 
@@ -82,7 +82,10 @@ public class LoanController {
     }
     )
     @GetMapping("/fetch")
-    public ResponseEntity<LoanDto> getLoan(@RequestParam(required = true) String mobileNumber) {
+    public ResponseEntity<LoanDto> getLoan(@Valid
+                                           @RequestParam(required = true)
+                                           @Pattern(regexp = "(^$|[0-9]{9,11})", message = "Mobile number must be between 9 and 11 digits")
+                                           String mobileNumber) {
         return ResponseEntity.status(HttpStatus.OK).body(loanService.getLoan(mobileNumber));
     }
 
@@ -138,8 +141,8 @@ public class LoanController {
     )
     @DeleteMapping("/delete")
     public ResponseEntity<ResponseDto> deleteLoan(@RequestParam(required = true)
-//                                                  @Pattern(regexp = "(^$[0-9]{11}$)",    message = "Mobile number must be 11 digits")
-                                                      String mobileNumber) {
+                                                  @Pattern(regexp = "(^$|[0-9]{9,11})", message = "Mobile number must be between 9 and 11 digits")
+                                                  String mobileNumber) {
         this.loanService.deleteLoan(mobileNumber);
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseDto("200", "Loan deleted successfully"));
 //        if (isDeleted) {
@@ -148,7 +151,27 @@ public class LoanController {
 //        }
     }
 
-
+    @Operation(
+            summary = "Get All Loans REST API",
+            description = "REST API to get all loan details based on a mobile number"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "HTTP Status OK"
+            ),
+            @ApiResponse(
+                    responseCode = "417",
+                    description = "Expectation Failed"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "HTTP Status Internal Server Error",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorResponseDto.class)
+                    )
+            )
+    })
     @GetMapping("/loans")
     public ResponseEntity<List<LoanDto>> getAllLoans() {
         return ResponseEntity.status(HttpStatus.OK).body(loanService.getAllLoans());
